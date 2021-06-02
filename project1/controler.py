@@ -4,7 +4,6 @@ from Functions import *
 
 #Function about Events
 def TransitionToEvent(code):
-    print("trantionToEvent code:",code)
     if(code==Event.EnterPieceForMachineA):
         event_EnterPieceForMachineA();
     elif(code==Event.EnterPieceForMachineB):
@@ -39,7 +38,6 @@ for NumberOfSimulation in range(0,10):
 
     #show result
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-    print("result")
-    print(NumberOfSimulation+1)
+    print("result Number Of Simulation",NumberOfSimulation+1,"th:")
     Exemine_ShowResult()
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

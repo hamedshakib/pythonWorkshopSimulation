@@ -45,7 +45,6 @@ class TypeOfPieces(Enum):
     PieceType2=2
 
 class Queue:
-    #ListOfpiecesInQueue=[]
     def __init__(self):
         self.MaxOfQueue = 0;
         self.ListOfpiecesInQueue=[]
@@ -82,14 +81,9 @@ class Queue:
         return self.ListOfpiecesInQueue.pop(firstIndex);
 
     def AppendAnotherListToThisList(self,AnotherQueue):
-        print("hhh")
-        print(":::",len(AnotherQueue.ListOfpiecesInQueue))
-        print("/",AnotherQueue.ListOfpiecesInQueue)
         for i in range[0,len(AnotherQueue.ListOfpiecesInQueue)]:
-            print("sss")
             self.ListOfpiecesInQueue.append(AnotherQueue.pop())
-        #self.ListOfpiecesInQueue.extend(AnotherQueue);
-        print("succ")
+
 
     def ResetToInitial(self):
         self.MaxOfQueue = 0;
@@ -108,9 +102,6 @@ class Piece:
         self.LogoutTime=LogoutTime
         
     def CalculateResponseTimeForOnePiece(self):
-        print("CalcRes LogoutTime:",self.LogoutTime)
-        print("CalcRes LoginTime:",self.LoginTime)
-        print("ResponseTime:",self.LogoutTime-self.LoginTime)
         self.ResponseTime=self.LogoutTime-self.LoginTime
 
 
@@ -168,7 +159,6 @@ class Machine:
             return CurrentTime-self.LastTimeMachineStartToProsses;
 
     def StartProssesOnPieceByMachine(self,piece):
-        print("StartedProsses that Entere at:",piece.LoginTime)
         self.Set_LastPieceThatMachineStartedToProsses(piece)
         self.Set_LastTimeMachineStartToProsses(CurrentTime);
 
@@ -288,11 +278,8 @@ def DeterminingFEL():
     global NowIndexOfFEL
     SortFEL();
     FirstMemberOfFEL=0
-    #NowIndexOfFEL;
     NowIndexOfFEL=FEL[NowNumberSimulationTime][FirstMemberOfFEL]
-    print("")
-    print("NowNumberSimulationTime:",NowNumberSimulationTime)
-    print("Feom DeterminingFEL:",FEL)
+
 
 
 
@@ -300,31 +287,21 @@ def MoveTimeToFEL():
     global NowIndexOfFEL
     global CurrentTime
     indexOfTime=1
-    #print(NowIndexOfFEL[0])
-    befCur=CurrentTime;
     CurrentTime=NowIndexOfFEL[indexOfTime];
-    aftCur=CurrentTime;
-    print("**--",befCur," ",aftCur)
-    print("Current:",CurrentTime)
-    print("From MoveTimeToFEL:",FEL)
+
 
 
 def SortFEL():
     indexOfTime=1
     FEL[NowNumberSimulationTime].sort(key=lambda tup: tup[indexOfTime])
-    print("")
-    print("From SortFEL:",FEL)
+
 
 def AddEventToFEL(code,Time):
-    #ToDo Edit
     FEL[NowNumberSimulationTime].append(tuple((code,Time)));
-    print("")
-    print("From AddEventToFEL:",FEL)
+
 
 def RemoveEventFromFEL(indexOfFEL):
-    print("index in romeve FEL:",indexOfFEL)
     FEL[NowNumberSimulationTime].remove(FEL[NowNumberSimulationTime][indexOfFEL])
-    print("From RemoveEventFromFEL:",FEL)
 
 #other
 def isFinishedTime():
@@ -345,7 +322,6 @@ def isNowInSetupTime():
 
 
 def isMachineNotBusy(machine):
-    print("Status machne:",machine.status)
     if(machine.status==MachineStatus.NotBusy):
         return True;
     else:
@@ -378,43 +354,31 @@ def CreateNewPieceEntered(pieceType):
     return piece;
 
 def AddPieceToListOfPieces(piece):
-    #ListOfPieces[NowNumberSimulationTime].append(piece);
-    print("***1")
     ListOfPieces[NowNumberSimulationTime].append(piece);
-    print("***2")
     return piece;
 
    
 def MoveQueueOfMachineAToQuereMachineB():
-    print("did*")
-    #global QueueOfEnterToMachineBType1;
     global QueueOfEnterToMachineA;
-    #QueueOfEnterToMachineBType1+=QueueOfEnterToMachineA
-    print("L:",QueueOfEnterToMachineA.ListOfpiecesInQueue)
+
     if(len(QueueOfEnterToMachineA.ListOfpiecesInQueue)!=0):
         QueueOfEnterToMachineBType1.AppendAnotherListToThisList(QueueOfEnterToMachineA);
         for pieceInQueueOfEnterToMachineA in QueueOfEnterToMachineA.ListOfpiecesInQueue:
             pieceInQueueOfEnterToMachineA.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
-    print("did**")
+
     QueueOfEnterToMachineA.ListOfpiecesInQueue=[]
 
 def MovePieceThatWasProssesingByMachineAToMachineB():
-    print("&1")
     LastPieceThatMachineAStartedToProsses=MachineA.LastPieceThatMachineStartedToProsses;
-    print("&2")
     MachineB.StartProssesOnPieceByMachine(LastPieceThatMachineAStartedToProsses);
     LastPieceThatMachineAStartedToProsses.ChangePieceStatus(PieceStatus.InProcessingByMachineB);
-    print("&3")
     serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineB);
-    print("&4")
     AddEventToFEL(Event.CompletionOfServiceOfMachineB,CalculteTimeOfCompletionService(serviceDeuration));
 
 def MovePieceThatWasProssesingByMachineBToQueueB():
     LastPieceThatMachineBStartedToProsses=MachineB.LastPieceThatMachineStartedToProsses;
     LastPieceThatMachineBStartedToProsses.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
-    print("did")
     QueueOfEnterToMachineBType2.InsertPieceToQueue(LastPieceThatMachineBStartedToProsses);
-    print("did5")
 
 
 def MovePieceToQueueOfEnterToMachineC_FromMachineA():
@@ -432,44 +396,29 @@ def MovePieceToQueueOfEnterToMachineC_FromMachineB():
 
 
 def ProssesForDetermineMaxofQueue(queue):
-    #print(len(queue.ListOfpiecesInQueue))
-    #lenof=len(queue.ListOfpiecesInQueue)
     queue.DetermineMaxQueueLength();
     global MaxOfQueueOfAllTypePieceEnterToMachineB;
     if(queue==QueueOfEnterToMachineBType1 or queue==QueueOfEnterToMachineBType2):
         NowLengthQueueOfAllTypePieceEnterToMachineB=(len(QueueOfEnterToMachineBType1.ListOfpiecesInQueue)+len(QueueOfEnterToMachineBType2.ListOfpiecesInQueue))
         if(MaxOfQueueOfAllTypePieceEnterToMachineB<NowLengthQueueOfAllTypePieceEnterToMachineB):
-            MaxOfQueueOfAllTypePieceEnterToMachineB=NowLengthQueueOfAllTypePieceEnterToMachineB
-            print("*$$$$$!!!!")
+            MaxOfQueueOfAllTypePieceEnterToMachineB=NowLengthQueueOfAllTypePieceEnterToMachineB;
 
-    #queue.DetermineMaxQueueLength(len(queue.ListOfpieces));
+
 
 
 def FindIndexOfFELCompletionOfService(machineType):
-    print("Errrrrrrrrrrrrr")
-    #ToDo complite bug mabye
-    i1=0
-    print("//**//",machineType)
+    numberOfIndexCompletionOfService=0
     indexOfCodeOfFEL=0
     for OneFutureEvent in FEL[NowNumberSimulationTime]:
-        print("...")
         if(machineType==TypeOfMachine.MachineTypeA):
-            print(999)
             if(OneFutureEvent[indexOfCodeOfFEL]==Event.CompletionOfServiceOfMachineA):
-                print("+",OneFutureEvent[indexOfCodeOfFEL])
-                print(i1)
-                return int(i1);
+                return int(numberOfIndexCompletionOfService);
         elif(machineType==TypeOfMachine.MachineTypeB):
-            print(888)
             if(OneFutureEvent[indexOfCodeOfFEL]==Event.CompletionOfServiceOfMachineB):
-                print("-",OneFutureEvent[indexOfCodeOfFEL])
-                print(i1)
-                return int(i1);
+                return int(numberOfIndexCompletionOfService);
         
-        i1=i1+1
-        print("i++")
+        numberOfIndexCompletionOfService+=1
 
-    print("No FEL of Complite there isn't");
 
 def IsThereComplitionEventForMachineInFEL(machineType):
     indexOfCodeOfFEL=0
@@ -481,9 +430,6 @@ def IsThereComplitionEventForMachineInFEL(machineType):
             if(OneFutureEvent[indexOfCodeOfFEL]==Event.CompletionOfServiceOfMachineB):
                 return True;
 
-
-
-    print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
     return False;
 
 
@@ -532,39 +478,10 @@ def initializationOfVariables(NumberOfSimulation1):
     QueueOfEnterToMachineC_FromMachineB.ResetToInitial();
 
 
-
-
-def ShowResultOfOneTimeSimulations():
-
-   
-    #print("TypeOfPiece:",ListOfPieces[0][0].type)
-    #print("Status:",ListOfPieces[0][0].PieceStatus)
-    #print("LoginTime:",ListOfPieces[0][0].LoginTime)
-    #print("LogoutTime:",ListOfPieces[0][0].LogoutTime)
-    #if(ListOfPieces[0][0].LogoutTime!=""):
-    #    print("ResponseTime:",ListOfPieces[0][0].ResponseTime)
-
-
-    #for i in ListOfPieces[0][0]:
-    #    print("TypeOfPiece:",i[0].type)
-
-    #if(NowNumberSimulationTime==1):
-    #    print("List:",ListOfPieces)
-
-    ListOfPieces[NowNumberSimulationTime][0].LoginTime
-    print("1 th piece",ListOfPieces[NowNumberSimulationTime][0].type,"Status:",ListOfPieces[NowNumberSimulationTime][0].PieceStatus,"ResponseTime:",ListOfPieces[NowNumberSimulationTime][0].ResponseTime);
-    ListOfPieces[NowNumberSimulationTime][1].LoginTime
-    print("2 th piece",ListOfPieces[NowNumberSimulationTime][1].type,"Status:",ListOfPieces[NowNumberSimulationTime][1].PieceStatus,"ResponseTime:",ListOfPieces[NowNumberSimulationTime][1].ResponseTime);
-    ListOfPieces[NowNumberSimulationTime][2].LoginTime
-    print("3 th piece",ListOfPieces[NowNumberSimulationTime][2].type,"Status:",ListOfPieces[NowNumberSimulationTime][2].PieceStatus,"ResponseTime:",ListOfPieces[NowNumberSimulationTime][2].ResponseTime);
-    ListOfPieces[NowNumberSimulationTime][3].LoginTime
-    print("4 th piece",ListOfPieces[NowNumberSimulationTime][3].type,"Status:",ListOfPieces[NowNumberSimulationTime][3].PieceStatus,"ResponseTime:",ListOfPieces[NowNumberSimulationTime][3].ResponseTime);
-
     
 
 
 def ProssesForExitOfLastPieceThatCompliteServiceByLastMachineOfSystem():
-    print("R%R")
     piece=MachineC.LastPieceThatMachineStartedToProsses;
     piece.add_LogoutTime(CurrentTime);
     piece.CalculateResponseTimeForOnePiece();
