@@ -37,7 +37,7 @@ for NumberOfSimulation in range(0,10):
         TransitionToEvent(SpecifyCodeNumber())
 
     #show result
-    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-    print("result Number Of Simulation",NumberOfSimulation+1,"th:")
+    print("Result of",NumberOfSimulation+1,"th Simulation:")
+    print("___________________________")
     Exemine_ShowResult()
-    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("\n\n\n\n\n\n\n\n\n\n\n\n");
