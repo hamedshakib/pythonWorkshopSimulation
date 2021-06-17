@@ -81,8 +81,10 @@ class Queue:
         return self.ListOfpiecesInQueue.pop(firstIndex);
 
     def AppendAnotherListToThisList(self,AnotherQueue):
-        for i in range[0,len(AnotherQueue.ListOfpiecesInQueue)]:
-            self.ListOfpiecesInQueue.append(AnotherQueue.pop())
+        for i in range(0,len(AnotherQueue.ListOfpiecesInQueue)):
+            self.ListOfpiecesInQueue.append(AnotherQueue.popPieceFromQueue())
+
+
 
 
     def ResetToInitial(self):
@@ -205,34 +207,44 @@ MaxOfQueueOfAllTypePieceEnterToMachineB=0;
 #define other Functions
 #Function about generate Random
 def GenerateRandomTimeBetweenTwoEnterA():
-    return numpy.random.normal(20,(3/3))
+    return numpy.random.normal(20,3)
+
 
 def GenerateRandomTimeBetweenTwoEnterB():
-    return numpy.random.normal(16,(10/3))
+    time= numpy.random.normal(16,10)
+    while(time<0):
+        time=numpy.random.normal(16,10)
+    return time
 
 def GenerateRandomTimeBetween_FinishRepair_OccurrenceFailure_MachineA():
-    return numpy.random.normal(450,(50/3))
+    return numpy.random.normal(450,50)
 
 def GenerateRandomTimeBetween_FinishRepair_OccurrenceFailure_MachineB():
-    return numpy.random.normal(210,(10/3))
+    return numpy.random.normal(210,10)
 
 def GenerateRandomTimeForRepairMachineA():
-    return numpy.random.normal(25,(4/3))
+    return numpy.random.normal(25,4)
 
 def GenerateRandomTimeForRepairMachineB():
-    return numpy.random.normal(20,(4/3))
+    return numpy.random.normal(20,4)
 
 def GenerateRandomTimeForServiceTimeMachineA():
-    return numpy.random.normal(15,(9/3))
+    time= numpy.random.normal(15,9)
+    while(time<0):
+        time=numpy.random.normal(15,9)
+    return time
 
 def GenerateRandomTimeForServiceTimeMachineB():
-    return numpy.random.normal(18,(2/3))
+    return numpy.random.normal(18,2)
 
 def GenerateRandomTimeForServiceTimeMachineC():
-    return numpy.random.normal(10,(4/3))
+    time= numpy.random.normal(10,4)
+    while(time<0):
+        time=numpy.random.normal(10,4)
+    return time
 
 def GenerateRandomTimeForServiceTime_OnMachineBForPiece1():
-    return numpy.random.normal(40,(9/3))
+    return numpy.random.normal(40,9)
 
 def DeterminingDurationOfService(service):
     if(service==TypeOfService.ServiceForPiece1ByMachineA):
@@ -367,6 +379,12 @@ def MoveQueueOfMachineAToQuereMachineB():
             pieceInQueueOfEnterToMachineA.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
 
     QueueOfEnterToMachineA.ListOfpiecesInQueue=[]
+
+
+def MovePieceThatWasProssesingByMachineAToQueueB():
+    piece=MachineA.LastPieceThatMachineStartedToProsses;
+    QueueOfEnterToMachineBType1.AppendPieceToQueue(piece);
+    piece.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
 
 def MovePieceThatWasProssesingByMachineAToMachineB():
     LastPieceThatMachineAStartedToProsses=MachineA.LastPieceThatMachineStartedToProsses;

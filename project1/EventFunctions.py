@@ -63,6 +63,8 @@ def event_OccurrenceOfMachineFailureA():
         if(isMachineNotBusy(MachineB)):
             MachineB.ChangeMachineStatus(MachineStatus.Serving);
             MovePieceThatWasProssesingByMachineAToMachineB();
+        else:
+            MovePieceThatWasProssesingByMachineAToQueueB();
         MoveQueueOfMachineAToQuereMachineB();
         ProssesForDetermineMaxofQueue(QueueOfEnterToMachineBType1);
 
