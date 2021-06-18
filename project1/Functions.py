@@ -1,6 +1,7 @@
 import numpy
 import pandas
 from enum import Enum
+from scipy.stats import t
 
 class Event(Enum):
     EnterPieceForMachineA = 1;
@@ -199,8 +200,13 @@ NowIndexOfFEL=tuple();
 ListOfPieces=[];
 NowNumberSimulationTime=0;
 MaxOfQueueOfAllTypePieceEnterToMachineB=0;
+NumberTotalSimulation=10;
+
+ResultOfResponseTime=pandas.DataFrame(columns=['AvrageResponseTimePieceType1','AvrageResponseTimePieceType2','AvrageResponseTimeTotalPiece']);
 
 
+ResultOfPointEstimation=pandas.DataFrame(columns=['PieceType','Point Estimation'])
+ResultOfIntervalEstimation=pandas.DataFrame(columns=['PieceType','LowerBound','UpperBound'])
 
 
 
@@ -635,3 +641,113 @@ def Exemine_ShowResult():
     print("******************************************************************")
     print(DetermineBottlenecksQueue(),"is bottlenecks")
     print("******************************************************************")
+
+
+
+def CalculatePointAndIntervalEstimationOfMean():
+    global ResultOfPointEstimation;
+    global ResultOfIntervalEstimation;
+    MeanOfPieceType1=numpy.mean(ResultOfResponseTime['AvrageResponseTimePieceType1'])
+    MeanOfPieceType2=numpy.mean(ResultOfResponseTime['AvrageResponseTimePieceType2'])
+    MeanOfTotalPiece=numpy.mean(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])
+
+
+    StdOfPieceType1=numpy.std(ResultOfResponseTime['AvrageResponseTimePieceType1'])
+    StdOfPieceType2=numpy.std(ResultOfResponseTime['AvrageResponseTimePieceType2'])
+    StdOfTotalPiece=numpy.std(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])
+    
+    T_Student=t.ppf(1-(0.05/2),NumberTotalSimulation-1);
+
+
+    LowerBound_EstimationOfMeanOfPieceType1=MeanOfPieceType1-(T_Student*StdOfPieceType1)/numpy.sqrt(NumberTotalSimulation);
+    UpperBound_EstimationOfMeanOfPieceType1=MeanOfPieceType1+(T_Student*StdOfPieceType1)/numpy.sqrt(NumberTotalSimulation);
+
+    
+    LowerBound_EstimationOfMeanOfPieceType2=MeanOfPieceType2-(T_Student*StdOfPieceType2)/numpy.sqrt(NumberTotalSimulation);
+    UpperBound_EstimationOfMeanOfPieceType2=MeanOfPieceType2+(T_Student*StdOfPieceType2)/numpy.sqrt(NumberTotalSimulation);
+
+    
+    LowerBound_EstimationOfMeanOfTotalPiece=MeanOfTotalPiece-(T_Student*StdOfTotalPiece)/numpy.sqrt(NumberTotalSimulation);
+    UpperBound_EstimationOfMeanOfTotalPiece=MeanOfTotalPiece+(T_Student*StdOfTotalPiece)/numpy.sqrt(NumberTotalSimulation);
+
+
+
+    ResultOfPointEstimation=ResultOfPointEstimation.append({
+        'PieceType':'Type1',
+        'Point Estimation':MeanOfPieceType1
+        }, ignore_index=True)
+    ResultOfPointEstimation=ResultOfPointEstimation.append({
+        'PieceType':'Type2',
+        'Point Estimation':MeanOfPieceType2
+        }, ignore_index=True)
+    ResultOfPointEstimation=ResultOfPointEstimation.append({
+        'PieceType':'Total',
+        'Point Estimation':MeanOfTotalPiece
+        }, ignore_index=True)
+
+
+
+
+
+    ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
+        'PieceType':'Type1',
+        'LowerBound':LowerBound_EstimationOfMeanOfPieceType1,
+        'UpperBound':UpperBound_EstimationOfMeanOfPieceType1
+        }, ignore_index=True)
+
+    ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
+        'PieceType':'Type2',
+        'LowerBound':LowerBound_EstimationOfMeanOfPieceType2,
+        'UpperBound':UpperBound_EstimationOfMeanOfPieceType2
+        }, ignore_index=True)
+
+    ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
+        'PieceType':'Total',
+        'LowerBound':LowerBound_EstimationOfMeanOfTotalPiece,
+        'UpperBound':UpperBound_EstimationOfMeanOfTotalPiece
+        }, ignore_index=True)
+
+
+
+    
+
+def SaveResult():
+    global ResultOfResponseTime
+    global NumberOfPieceThatExitedFromSystemInNonSetupTimeType1;
+    global NumberOfPieceThatExitedFromSystemInNonSetupTimeType2;
+
+
+    SumResponseTimePieceType1=0;
+    SumResponseTimePieceType2=0;
+    for piece in  ListOfPieces[NowNumberSimulationTime][:]:
+        if(piece.LogoutTime!=""):
+            if(piece.LogoutTime>TotalSetupTime):
+                if(piece.type==TypeOfPieces.PieceType1):
+                    SumResponseTimePieceType1+=piece.ResponseTime;
+                if(piece.type==TypeOfPieces.PieceType2):
+                    SumResponseTimePieceType2+=piece.ResponseTime;
+
+    AvrageResponseTimePieceType1=SumResponseTimePieceType1/NumberOfPieceThatExitedFromSystemInNonSetupTimeType1;
+    AvrageResponseTimePieceType2=SumResponseTimePieceType2/NumberOfPieceThatExitedFromSystemInNonSetupTimeType2;
+    AvrageResponseTimeTotalPiece=(SumResponseTimePieceType1+SumResponseTimePieceType2)/(NumberOfPieceThatExitedFromSystemInNonSetupTimeType1+NumberOfPieceThatExitedFromSystemInNonSetupTimeType2)
+
+    
+    ResultOfResponseTime = ResultOfResponseTime.append({
+        'NumberSimulation':NowNumberSimulationTime+1,
+        'AvrageResponseTimePieceType1':AvrageResponseTimePieceType1,
+        'AvrageResponseTimePieceType2':AvrageResponseTimePieceType2,
+        'AvrageResponseTimeTotalPiece':AvrageResponseTimeTotalPiece
+        }, ignore_index=True)
+
+
+
+def showEstimationOfMean():
+    CalculatePointAndIntervalEstimationOfMean()
+    print("Point Estimation Of the Whole Simulation Process")
+    print('\n')
+    print(ResultOfPointEstimation)
+    print('\n')
+    print('\n')
+    print("Interval Estimation Of the Whole Simulation Process")
+    print('\n')
+    print(ResultOfIntervalEstimation)

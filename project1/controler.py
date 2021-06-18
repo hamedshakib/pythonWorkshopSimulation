@@ -40,4 +40,8 @@ for NumberOfSimulation in range(0,10):
     print("Result of",NumberOfSimulation+1,"th Simulation:")
     print("___________________________")
     Exemine_ShowResult()
+    SaveResult()
     print("\n\n\n\n\n\n\n\n\n\n\n\n");
+
+
+showEstimationOfMean()
