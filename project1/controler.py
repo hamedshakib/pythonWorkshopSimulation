@@ -45,3 +45,4 @@ for NumberOfSimulation in range(0,10):
 
 
 showEstimationOfMean()
+DrawAllPlots()
