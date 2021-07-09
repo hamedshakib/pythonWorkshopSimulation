@@ -2,6 +2,8 @@ import numpy
 import pandas
 from enum import Enum
 from scipy.stats import t
+from scipy.stats import sem
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 class Event(Enum):
@@ -101,6 +103,15 @@ class Piece:
         self.type = type
         self.LoginTime=LoginTime;
         self.LogoutTime="";
+        self.PieceStatus=""
+
+        self.TimeInQueueOfMachineA=""
+        self.TimeInQueueOfMachineB=""
+        self.TimeInQueueOfMachineC_FromMachineA=""
+        self.TimeInQueueOfMachineC_FromMachineB=""
+        self.TimeInProcessingByMachineA=""
+        self.TimeInProcessingByMachineB=""
+        self.TimeInProcessingByMachineC=""
 
     def add_LogoutTime(self, LogoutTime):
         self.LogoutTime=LogoutTime
@@ -114,6 +125,41 @@ class Piece:
 
     def ChangePieceStatus(self,status):
         self.PieceStatus=status;
+
+    def ApplyStartTimeOfNewPosion(self,status):
+        data=str(round(CurrentTime,1));
+        if(status==PieceStatus.InQueueOfMachineA):
+            self.TimeInQueueOfMachineA=data
+        if(status==PieceStatus.InQueueOfMachineB):
+            self.TimeInQueueOfMachineB=data
+        if(status==PieceStatus.InQueueOfMachineC_FromMachineA):
+            self.TimeInQueueOfMachineC_FromMachineA=data
+        if(status==PieceStatus.InQueueOfMachineC_FromMachineB):
+            self.TimeInQueueOfMachineC_FromMachineB=data
+        if(status==PieceStatus.InProcessingByMachineA):
+            self.TimeInProcessingByMachineA=data
+        if(status==PieceStatus.InProcessingByMachineB):
+            self.TimeInProcessingByMachineB=data
+        if(status==PieceStatus.InProcessingByMachineC):
+            self.TimeInProcessingByMachineC=data
+
+    def ApplyEndTimeOfLastPosion(self):
+        data=str(round(CurrentTime,1));
+        if(self.PieceStatus==PieceStatus.InQueueOfMachineA):
+            self.TimeInQueueOfMachineA+='-'+data
+        elif(self.PieceStatus==PieceStatus.InQueueOfMachineB):
+            self.TimeInQueueOfMachineB+='-'+data
+        elif(self.PieceStatus==PieceStatus.InQueueOfMachineC_FromMachineA):
+            self.TimeInQueueOfMachineC_FromMachineA+='-'+data
+        elif(self.PieceStatus==PieceStatus.InQueueOfMachineC_FromMachineB):
+            self.TimeInQueueOfMachineC_FromMachineB+='-'+data
+        elif(self.PieceStatus==PieceStatus.InProcessingByMachineA):
+            self.TimeInProcessingByMachineA+='-'+data
+        elif(self.PieceStatus==PieceStatus.InProcessingByMachineB):
+            self.TimeInProcessingByMachineB+='-'+data
+        elif(self.PieceStatus==PieceStatus.InProcessingByMachineC):
+            self.TimeInProcessingByMachineC+='-'+data
+        
 
 
 
@@ -210,7 +256,14 @@ ResultOfTotalExplotionRate=pandas.DataFrame(columns=['NumberSimulation','TotalEx
 ResultOfMachineFailureRate=pandas.DataFrame(columns=['NumberSimulation','MachineFailureRateMachineA','MachineFailureRateMachineB','MachineFailureRateMachineC']);
 
 ResultOfPointEstimation=pandas.DataFrame(columns=['PieceType','Point Estimation'])
-ResultOfIntervalEstimation=pandas.DataFrame(columns=['PieceType','LowerBound','UpperBound'])
+ResultOfIntervalEstimation=pandas.DataFrame(columns=['PieceType','Interval Estimation'])
+
+
+sns.set_style('whitegrid')
+sns.set_palette('Set2')
+
+
+
 
 
 
@@ -266,7 +319,7 @@ def DeterminingDurationOfService(service):
         return GenerateRandomTimeForServiceTime_OnMachineBForPiece1();
     elif(service==TypeOfService.ServiceByMachineC):
         return GenerateRandomTimeForServiceTimeMachineC();
-#!
+ 
 def CalculteTimeOfCompletionService(serviceDuration):
     global CurrentTime;
     return serviceDuration+CurrentTime;
@@ -387,7 +440,10 @@ def MoveQueueOfMachineAToQuereMachineB():
     if(len(QueueOfEnterToMachineA.ListOfpiecesInQueue)!=0):
         QueueOfEnterToMachineBType1.AppendAnotherListToThisList(QueueOfEnterToMachineA);
         for pieceInQueueOfEnterToMachineA in QueueOfEnterToMachineA.ListOfpiecesInQueue:
+            pieceInQueueOfEnterToMachineA.ApplyEndTimeOfLastPosion();
             pieceInQueueOfEnterToMachineA.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
+            pieceInQueueOfEnterToMachineA.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineB)
+
 
     QueueOfEnterToMachineA.ListOfpiecesInQueue=[]
 
@@ -395,33 +451,43 @@ def MoveQueueOfMachineAToQuereMachineB():
 def MovePieceThatWasProssesingByMachineAToQueueB():
     piece=MachineA.LastPieceThatMachineStartedToProsses;
     QueueOfEnterToMachineBType1.AppendPieceToQueue(piece);
+    piece.ApplyEndTimeOfLastPosion();
     piece.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
+    piece.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineB)
 
 def MovePieceThatWasProssesingByMachineAToMachineB():
     LastPieceThatMachineAStartedToProsses=MachineA.LastPieceThatMachineStartedToProsses;
     MachineB.StartProssesOnPieceByMachine(LastPieceThatMachineAStartedToProsses);
+    LastPieceThatMachineAStartedToProsses.ApplyEndTimeOfLastPosion();
     LastPieceThatMachineAStartedToProsses.ChangePieceStatus(PieceStatus.InProcessingByMachineB);
+    LastPieceThatMachineAStartedToProsses.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineB);
     serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineB);
     AddEventToFEL(Event.CompletionOfServiceOfMachineB,CalculteTimeOfCompletionService(serviceDeuration));
 
 def MovePieceThatWasProssesingByMachineBToQueueB():
     LastPieceThatMachineBStartedToProsses=MachineB.LastPieceThatMachineStartedToProsses;
+    LastPieceThatMachineBStartedToProsses.ApplyEndTimeOfLastPosion();
     LastPieceThatMachineBStartedToProsses.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
+    LastPieceThatMachineBStartedToProsses.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineB)
     QueueOfEnterToMachineBType2.InsertPieceToQueue(LastPieceThatMachineBStartedToProsses);
 
 
 def MovePieceToQueueOfEnterToMachineC_FromMachineA():
     LastPieceThatMachineAComplitedProsses=MachineA.LastPieceThatMachineStartedToProsses;
+    LastPieceThatMachineAComplitedProsses.ApplyEndTimeOfLastPosion();
     LastPieceThatMachineAComplitedProsses.ChangePieceStatus(PieceStatus.InQueueOfMachineC_FromMachineA)
+    LastPieceThatMachineAComplitedProsses.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineC_FromMachineA)
     QueueOfEnterToMachineC_FromMachineA.AppendPieceToQueue(LastPieceThatMachineAComplitedProsses)
+    LastPieceThatMachineAComplitedProsses.ApplyEndTimeOfLastPosion();
     LastPieceThatMachineAComplitedProsses.ChangePieceStatus(PieceStatus.InQueueOfMachineC_FromMachineA)
-
+    LastPieceThatMachineAComplitedProsses.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineC_FromMachineA)
 
 def MovePieceToQueueOfEnterToMachineC_FromMachineB():
     LastPieceThatMachineBComplitedProsses=MachineB.LastPieceThatMachineStartedToProsses;
     QueueOfEnterToMachineC_FromMachineB.AppendPieceToQueue(LastPieceThatMachineBComplitedProsses)
+    LastPieceThatMachineBComplitedProsses.ApplyEndTimeOfLastPosion();
     LastPieceThatMachineBComplitedProsses.ChangePieceStatus(PieceStatus.InQueueOfMachineC_FromMachineB)
-
+    LastPieceThatMachineBComplitedProsses.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineC_FromMachineB)
 
 
 def ProssesForDetermineMaxofQueue(queue):
@@ -514,6 +580,7 @@ def ProssesForExitOfLastPieceThatCompliteServiceByLastMachineOfSystem():
     piece=MachineC.LastPieceThatMachineStartedToProsses;
     piece.add_LogoutTime(CurrentTime);
     piece.CalculateResponseTimeForOnePiece();
+    piece.ApplyEndTimeOfLastPosion();
     piece.ChangePieceStatus(PieceStatus.Exited)
 
 def add_NumberOfPieceThatExitedFromSystemInNonSetupTime(type):
@@ -525,10 +592,9 @@ def add_NumberOfPieceThatExitedFromSystemInNonSetupTime(type):
             NumberOfPieceThatExitedFromSystemInNonSetupTimeType2+=1;
 
 
-def Exemine_ShowResult():
-    ResultOfpiecesTable = pandas.DataFrame(columns=['Type Of Piece','Status of piece','EnterTime', 'ExitTime', 'ResponseTime'])
+def ShowResult():
+    ResultOfpiecesTable = pandas.DataFrame(columns=['Type Of Piece','Status of piece','EnterTime', 'ExitTime','In Queue Of MachineA','In Queue Of MachineB','In Queue Of MachineC From MachineA','In Queue Of MachineC From MachineB','InProcessing By MachineA','InProcessing By MachineB','InProcessing By MachineC','ResponseTime'])
     for OnePiece in ListOfPieces[NowNumberSimulationTime][:]:
-
         if(OnePiece.PieceStatus==PieceStatus.Exited):
             if(OnePiece.LogoutTime>TotalSetupTime):
                 ResultOfpiecesTable = ResultOfpiecesTable.append({
@@ -536,6 +602,13 @@ def Exemine_ShowResult():
                     'Status of piece':OnePiece.PieceStatus,
                     'EnterTime': OnePiece.LoginTime,
                     'ExitTime': OnePiece.LogoutTime,
+                    'In Queue Of MachineA':OnePiece.TimeInQueueOfMachineA,
+                    'In Queue Of MachineB':OnePiece.TimeInQueueOfMachineB,
+                    'In Queue Of MachineC From MachineA':OnePiece.TimeInQueueOfMachineC_FromMachineA,
+                    'In Queue Of MachineC From MachineB':OnePiece.TimeInQueueOfMachineC_FromMachineB,
+                    'InProcessing By MachineA':OnePiece.TimeInProcessingByMachineA,
+                    'InProcessing By MachineB':OnePiece.TimeInProcessingByMachineB,
+                    'InProcessing By MachineC':OnePiece.TimeInProcessingByMachineC,
                     'ResponseTime': OnePiece.ResponseTime
                     }, ignore_index=True)
 
@@ -544,9 +617,17 @@ def Exemine_ShowResult():
                 'Type Of Piece':OnePiece.type,
                 'Status of piece':OnePiece.PieceStatus,
                 'EnterTime': OnePiece.LoginTime,
+                'In Queue Of MachineA':OnePiece.TimeInQueueOfMachineA,
+                'In Queue Of MachineB':OnePiece.TimeInQueueOfMachineB,
+                'In Queue Of MachineC From MachineA':OnePiece.TimeInQueueOfMachineC_FromMachineA,
+                'In Queue Of MachineC From MachineB':OnePiece.TimeInQueueOfMachineC_FromMachineB,
+                'InProcessing By MachineA':OnePiece.TimeInProcessingByMachineA,
+                'InProcessing By MachineB':OnePiece.TimeInProcessingByMachineB,
+                'InProcessing By MachineC':OnePiece.TimeInProcessingByMachineC
                 }, ignore_index=True)
 
 
+    
     print('------------------------------------------------------------------')
     print("Result for each piece:")
     print('\n')
@@ -654,26 +735,14 @@ def CalculatePointAndIntervalEstimationOfMean():
     global ResultOfIntervalEstimation;
     MeanOfPieceType1=numpy.mean(ResultOfResponseTime['AvrageResponseTimePieceType1'])
     MeanOfPieceType2=numpy.mean(ResultOfResponseTime['AvrageResponseTimePieceType2'])
-    MeanOfTotalPiece=numpy.mean(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])
+    MeanOfTotalPieces=numpy.mean(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])
 
 
-    StdOfPieceType1=numpy.std(ResultOfResponseTime['AvrageResponseTimePieceType1'])
-    StdOfPieceType2=numpy.std(ResultOfResponseTime['AvrageResponseTimePieceType2'])
-    StdOfTotalPiece=numpy.std(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])
-    
-    T_Student=t.ppf(1-(0.05/2),NumberTotalSimulation-1);
 
+    IntervalestimationPieceType1=t.interval(alpha=0.95,  df=NumberTotalSimulation-1, loc=MeanOfPieceType1, scale=sem(ResultOfResponseTime['AvrageResponseTimePieceType1'])) 
+    IntervalestimationPieceType2=t.interval(alpha=0.95,  df=NumberTotalSimulation-1, loc=MeanOfPieceType2, scale=sem(ResultOfResponseTime['AvrageResponseTimePieceType2'])) 
+    IntervalestimationTotalPieces=t.interval(alpha=0.95, df=NumberTotalSimulation-1, loc=MeanOfTotalPieces, scale=sem(ResultOfResponseTime['AvrageResponseTimeTotalPiece'])) 
 
-    LowerBound_EstimationOfMeanOfPieceType1=MeanOfPieceType1-(T_Student*StdOfPieceType1)/numpy.sqrt(NumberTotalSimulation);
-    UpperBound_EstimationOfMeanOfPieceType1=MeanOfPieceType1+(T_Student*StdOfPieceType1)/numpy.sqrt(NumberTotalSimulation);
-
-    
-    LowerBound_EstimationOfMeanOfPieceType2=MeanOfPieceType2-(T_Student*StdOfPieceType2)/numpy.sqrt(NumberTotalSimulation);
-    UpperBound_EstimationOfMeanOfPieceType2=MeanOfPieceType2+(T_Student*StdOfPieceType2)/numpy.sqrt(NumberTotalSimulation);
-
-    
-    LowerBound_EstimationOfMeanOfTotalPiece=MeanOfTotalPiece-(T_Student*StdOfTotalPiece)/numpy.sqrt(NumberTotalSimulation);
-    UpperBound_EstimationOfMeanOfTotalPiece=MeanOfTotalPiece+(T_Student*StdOfTotalPiece)/numpy.sqrt(NumberTotalSimulation);
 
 
 
@@ -687,33 +756,28 @@ def CalculatePointAndIntervalEstimationOfMean():
         }, ignore_index=True)
     ResultOfPointEstimation=ResultOfPointEstimation.append({
         'PieceType':'Total',
-        'Point Estimation':MeanOfTotalPiece
+        'Point Estimation':MeanOfTotalPieces
         }, ignore_index=True)
-
-
 
 
 
     ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
         'PieceType':'Type1',
-        'LowerBound':LowerBound_EstimationOfMeanOfPieceType1,
-        'UpperBound':UpperBound_EstimationOfMeanOfPieceType1
+        'Interval Estimation':IntervalestimationPieceType1
         }, ignore_index=True)
 
     ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
         'PieceType':'Type2',
-        'LowerBound':LowerBound_EstimationOfMeanOfPieceType2,
-        'UpperBound':UpperBound_EstimationOfMeanOfPieceType2
+        'Interval Estimation':IntervalestimationPieceType2
         }, ignore_index=True)
 
     ResultOfIntervalEstimation=ResultOfIntervalEstimation.append({
         'PieceType':'Total',
-        'LowerBound':LowerBound_EstimationOfMeanOfTotalPiece,
-        'UpperBound':UpperBound_EstimationOfMeanOfTotalPiece
+        'Interval Estimation':IntervalestimationTotalPieces
         }, ignore_index=True)
 
 
-
+  
     
 
 def SaveResult():
@@ -770,7 +834,7 @@ def SaveResult():
 
 
 
-def showEstimationOfMean():
+def ShowEstimationOfMean():
     CalculatePointAndIntervalEstimationOfMean()
     print("Point Estimation Of the Whole Simulation Process")
     print('\n')
@@ -783,47 +847,6 @@ def showEstimationOfMean():
 
 
 
-
-
-def draw():
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    ind = np.arange(NumberTotalSimulation) 
-    width = 0.35       
-    plt.bar(ind, List_NumberOfPieceThatExitedFromSystemInNonSetupTimeType1, width,color='red', label='Type1')
-    plt.bar(ind + width, List_NumberOfPieceThatExitedFromSystemInNonSetupTimeType2, width,color='blue',label='Type2')
-
-    plt.xlabel('Number of Simulation')
-    plt.ylabel('Number of pieces')
-    plt.title('Number of piece producted per simulation')
-
-    plt.xticks(ind + width / 2, ('1', '2', '3', '4', '5','6','7','8','9','10'))
-    plt.legend(loc='best')
-    plt.show()
-
-
-def drawResponseTimePlot():
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    List_NumberOfPieceThatExitedFromSystemInNonSetupTimeType1=[10,15,16,18,20,10,11,12,13,14]
-    List_NumberOfPieceThatExitedFromSystemInNonSetupTimeType2=[11,14,18,17,21,11,12,13,14,15]
-
-    ind = np.arange(NumberTotalSimulation) 
-    width = 0.35       
-    plt.bar(ind, ResultOfNumberOfPieceProducted, width,color='red', label='Type1')
-    plt.bar(ind + width, ResultOfNumberOfPieceProducted, width,color='blue',label='Type2')
-
-    plt.xlabel('Number of Simulation')
-    plt.ylabel('Number of pieces')
-    plt.title('Number of piece producted per simulation')
-
-    plt.xticks(ind + width / 2, ('1', '2', '3', '4', '5','6','7','8','9','10'))
-    plt.legend(loc='best')
-    plt.show()
-
-
 def DrawAllPlots():
     Draw_ResultOfResponseTime();
     Draw_ResultOfTotalExplotionRate();
@@ -831,47 +854,66 @@ def DrawAllPlots():
     Draw_ResultOfNumberOfPieceProducted();
 
 def Draw_ResultOfResponseTime():
-    ax = plt.gca()
-    ResultOfResponseTime.plot(x ='NumberSimulation', y='AvrageResponseTimePieceType1', kind = 'line',ax=ax)
-    ResultOfResponseTime.plot(x ='NumberSimulation', y='AvrageResponseTimePieceType2', kind = 'line',ax=ax)
-    plt.legend(loc='best')
-    plt.title('Avrage ResponseTime For Each Type of Piece per simulation')
+    plt.figure(figsize=(10,6))
+
+    sns.lineplot(x ='NumberSimulation', y='AvrageResponseTimePieceType1', data=ResultOfResponseTime, label='Piece Type1', marker="o")
+    sns.lineplot(x ='NumberSimulation', y='AvrageResponseTimePieceType2', data=ResultOfResponseTime, label='Piece Type2', marker="o")
+    
+    plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
+    plt.title('Average ResponseTime For Each Type of Pieces Per Simulation', fontsize=14)
+    plt.xlabel('Simulation Number', fontsize=12)
+    plt.xticks(ticks=numpy.arange(1,11))
+    plt.ylabel('Average Response Time', fontsize=12)
     plt.show()
 
 def Draw_ResultOfTotalExplotionRate():
-    ax=plt.gca()
-    ResultOfTotalExplotionRate.plot(x='NumberSimulation',y='TotalExplotionRateMachineA',kind ='line',ax=ax)
-    ResultOfTotalExplotionRate.plot(x='NumberSimulation',y='TotalExplotionRateMachineB',kind ='line',ax=ax)
-    ResultOfTotalExplotionRate.plot(x='NumberSimulation',y='TotalExplotionRateMachineC',kind ='line',ax=ax)
-    plt.legend(loc='best')
-    plt.title('Total Explotion Rate For Each Machine per simulation')
-    plt.show();
+    plt.figure(figsize=(10,6))
 
-def Draw_ResultOfMachineFailureRate():
-    ax=plt.gca()
-    ResultOfMachineFailureRate.plot(x='NumberSimulation',y='MachineFailureRateMachineA',kind ='line',ax=ax)
-    ResultOfMachineFailureRate.plot(x='NumberSimulation',y='MachineFailureRateMachineB',kind ='line',ax=ax)
-    ResultOfMachineFailureRate.plot(x='NumberSimulation',y='MachineFailureRateMachineC',kind ='line',ax=ax)
-    plt.legend(loc='best')
-    plt.title('Machine Failure Rate For Each Machine per simulation')
-    plt.show();
+    sns.lineplot(x ='NumberSimulation', y='TotalExplotionRateMachineA', data=ResultOfTotalExplotionRate, label='Machine A', marker="o")
+    sns.lineplot(x ='NumberSimulation', y='TotalExplotionRateMachineB', data=ResultOfTotalExplotionRate, label='Machine B', marker="o")
+    sns.lineplot(x ='NumberSimulation', y='TotalExplotionRateMachineC', data=ResultOfTotalExplotionRate, label='Machine C', marker="o")    
+    
+    plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
+    plt.title('Total Exploitation Rate For Each Machine Per Simulation', fontsize=14)
+    plt.xlabel('Simulation Number', fontsize=12)
+    plt.xticks(ticks=numpy.arange(1,11))
+    plt.ylabel('Total Exploitation Rate', fontsize=12)
 
-def Draw_ResultOfNumberOfPieceProducted():
-    ind = numpy.arange(NumberTotalSimulation) 
-    width = 0.35       
-    plt.bar(ind, ResultOfNumberOfPieceProducted.loc[:]['NumberOfPieceProductedType1'], width,color='orange', label='Type1')
-    plt.bar(ind + width, ResultOfNumberOfPieceProducted.loc[:]['NumberOfPieceProductedType2'], width,color='blue',label='Type2')
-
-    plt.xlabel('Number of Simulation')
-    plt.ylabel('Number of pieces')
-    plt.title('Number of piece producted per simulation')
-
-    plt.xticks(ind + width / 2,ResultOfNumberOfPieceProducted.loc[:]['NumberSimulation'] )
-    plt.legend(loc='best')
     plt.show()
 
+def Draw_ResultOfMachineFailureRate():
+    plt.figure(figsize=(10,6))
 
+    sns.lineplot(x ='NumberSimulation', y='MachineFailureRateMachineA', data=ResultOfMachineFailureRate, label='Machine A', marker="o")
+    sns.lineplot(x ='NumberSimulation', y='MachineFailureRateMachineB', data=ResultOfMachineFailureRate, label='Machine B', marker="o")
+    sns.lineplot(x ='NumberSimulation', y='MachineFailureRateMachineC', data=ResultOfMachineFailureRate, label='Machine C', marker="o")    
 
+    plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
+    plt.title('Machine Failure Rate For Each Machine Per Simulation', fontsize=14)
+    plt.xlabel('Simulation Number', fontsize=12)
+    plt.xticks(ticks=numpy.arange(1,11))
+    plt.ylabel('Machine Failure Rate', fontsize=12)
+    
+    plt.show()
 
+def Draw_ResultOfNumberOfPieceProducted():
+    plt.figure(figsize=(10,6))
+
+    # For a better result, unpivot "ResultOfNumberOfPieceProducted" dataframe
+    ResultOfNumberOfPieceProducted_unpivoted = ResultOfNumberOfPieceProducted.melt(id_vars=['NumberSimulation'], var_name='TypeOfProducedPiece', value_name='NumberOfProducedPieces')
+    ax = sns.barplot(data = ResultOfNumberOfPieceProducted_unpivoted, x='NumberSimulation', y='NumberOfProducedPieces'
+                , hue='TypeOfProducedPiece')
+
+    #Legend modifications
+    labels=["Piece Type1", "Piece Type2"]
+    h, l = ax.get_legend_handles_labels()
+    ax.legend(h,labels, bbox_to_anchor=(1, 1), loc='upper left')
+    
+    
+    plt.title('Number of Pieces Producted Per Simulation', fontsize=14)
+    plt.xlabel('Simulation Number', fontsize=12)
+    plt.xticks(ticks=numpy.arange(1,11))
+    plt.ylabel('Number of Pieces', fontsize=12)
+    plt.show()
 
 

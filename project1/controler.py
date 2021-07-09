@@ -39,10 +39,10 @@ for NumberOfSimulation in range(0,10):
     #show result
     print("Result of",NumberOfSimulation+1,"th Simulation:")
     print("___________________________")
-    Exemine_ShowResult()
+    ShowResult()
     SaveResult()
     print("\n\n\n\n\n\n\n\n\n\n\n\n");
 
 
-showEstimationOfMean()
+ShowEstimationOfMean()
 DrawAllPlots()

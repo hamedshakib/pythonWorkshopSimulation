@@ -9,7 +9,9 @@ def event_EnterPieceForMachineA():
     if(isMachineNotBusy(MachineA)):
         MachineA.ChangeMachineStatus(MachineStatus.Serving);
         MachineA.StartProssesOnPieceByMachine(piece)
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InProcessingByMachineA);
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineA)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineA)
         AddEventToFEL(Event.CompletionOfServiceOfMachineA,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -17,11 +19,15 @@ def event_EnterPieceForMachineA():
 
     elif(isMachineServing(MachineA)):
         QueueOfEnterToMachineA.AppendPieceToQueue(piece);
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InQueueOfMachineA);
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineA)
         ProssesForDetermineMaxofQueue(QueueOfEnterToMachineA)
     elif(isMachineRepairing(MachineA)):
         QueueOfEnterToMachineBType1.AppendPieceToQueue(piece);
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineB)
         ProssesForDetermineMaxofQueue(QueueOfEnterToMachineBType1)
   
     RemoveEventFromFEL(0);
@@ -39,7 +45,9 @@ def event_EnterPieceForMachineB():
     if(isMachineNotBusy(MachineB)):
         MachineB.ChangeMachineStatus(MachineStatus.Serving);
         MachineB.StartProssesOnPieceByMachine(piece);
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InProcessingByMachineB);
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineB)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece2ByMachineB);
         AddEventToFEL(Event.CompletionOfServiceOfMachineB,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -47,7 +55,9 @@ def event_EnterPieceForMachineB():
 
     else:
         QueueOfEnterToMachineBType2.AppendPieceToQueue(piece)
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InQueueOfMachineB);
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InQueueOfMachineB)
         ProssesForDetermineMaxofQueue(QueueOfEnterToMachineBType2);
     RemoveEventFromFEL(0);
 
@@ -134,7 +144,9 @@ def event_CompletionOfServiceOfMachineA():
         MachineC.ChangeMachineStatus(MachineStatus.Serving);
         piece1=MachineA.LastPieceThatMachineStartedToProsses;
         MachineC.StartProssesOnPieceByMachine(piece1);
+        piece1.ApplyEndTimeOfLastPosion();
         piece1.ChangePieceStatus(PieceStatus.InProcessingByMachineC)
+        piece1.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineC)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceByMachineC);
         AddEventToFEL(Event.CompletionOfServiceOfMachineC,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -147,7 +159,9 @@ def event_CompletionOfServiceOfMachineA():
     if(QueueOfEnterToMachineA.isQueueEmpty()==False):
         piece2=QueueOfEnterToMachineA.popPieceFromQueue();
         MachineA.StartProssesOnPieceByMachine(piece2)
+        piece2.ApplyEndTimeOfLastPosion();
         piece2.ChangePieceStatus(PieceStatus.InProcessingByMachineA)
+        piece2.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineA)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineA);
         AddEventToFEL(Event.CompletionOfServiceOfMachineA,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -174,7 +188,9 @@ def event_CompletionOfServiceOfMachineB():
     if(isMachineNotBusy(MachineC)):
         MachineC.ChangeMachineStatus(MachineStatus.Serving);
         piece1=MachineB.LastPieceThatMachineStartedToProsses;
+        piece1.ApplyEndTimeOfLastPosion();
         piece1.ChangePieceStatus(PieceStatus.InProcessingByMachineC)
+        piece1.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineC)
         MachineC.StartProssesOnPieceByMachine(piece1);
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceByMachineC);
         AddEventToFEL(Event.CompletionOfServiceOfMachineC,CalculteTimeOfCompletionService(serviceDeuration));
@@ -187,7 +203,9 @@ def event_CompletionOfServiceOfMachineB():
     if(QueueOfEnterToMachineBType1.isQueueEmpty()==False):
         piece2=QueueOfEnterToMachineBType1.popPieceFromQueue();
         MachineB.StartProssesOnPieceByMachine(piece2)
+        piece2.ApplyEndTimeOfLastPosion();
         piece2.ChangePieceStatus(PieceStatus.InProcessingByMachineB)
+        piece2.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineB)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineB);
         AddEventToFEL(Event.CompletionOfServiceOfMachineB,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -196,7 +214,9 @@ def event_CompletionOfServiceOfMachineB():
     elif(QueueOfEnterToMachineBType2.isQueueEmpty()==False):
         piece2=QueueOfEnterToMachineBType2.popPieceFromQueue();
         MachineB.StartProssesOnPieceByMachine(piece2)
+        piece2.ApplyEndTimeOfLastPosion();
         piece2.ChangePieceStatus(PieceStatus.InProcessingByMachineB)
+        piece2.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineB)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceForPiece1ByMachineB);
         AddEventToFEL(Event.CompletionOfServiceOfMachineB,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -225,7 +245,9 @@ def event_CompletionOfServiceOfMachineC():
     if(QueueOfEnterToMachineC_FromMachineA.isQueueEmpty()==False):
         piece=QueueOfEnterToMachineC_FromMachineA.popPieceFromQueue();
         MachineC.StartProssesOnPieceByMachine(piece)
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InProcessingByMachineC)
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineC)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceByMachineC);
         AddEventToFEL(Event.CompletionOfServiceOfMachineC,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
@@ -234,7 +256,9 @@ def event_CompletionOfServiceOfMachineC():
     elif(QueueOfEnterToMachineC_FromMachineB.isQueueEmpty()==False):
         piece=QueueOfEnterToMachineC_FromMachineB.popPieceFromQueue();
         MachineC.StartProssesOnPieceByMachine(piece)
+        piece.ApplyEndTimeOfLastPosion();
         piece.ChangePieceStatus(PieceStatus.InProcessingByMachineC)
+        piece.ApplyStartTimeOfNewPosion(PieceStatus.InProcessingByMachineC)
         serviceDeuration=DeterminingDurationOfService(TypeOfService.ServiceByMachineC);
         AddEventToFEL(Event.CompletionOfServiceOfMachineC,CalculteTimeOfCompletionService(serviceDeuration));
         if(isNowInSetupTime()==False):
